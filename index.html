@@ -3,60 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ExoLith AR - Complete Software</title>
+    <title>ExoLith AR - Professional Suite</title>
     
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
 
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { display: flex; height: 100vh; background-color: #f8f9fa; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        body { display: flex; height: 100vh; background-color: #f8f9fa; overflow: hidden; }
 
-        /* Sidebar */
-        .sidebar { width: 250px; background-color: #001f3f; color: white; display: flex; flex-direction: column; padding: 20px; z-index: 10; }
-        .sidebar h2 { color: #89CFF0; margin-bottom: 30px; font-size: 24px; }
+        /* Sidebar Navigation */
+        .sidebar { width: 250px; background-color: #001f3f; color: white; display: flex; flex-direction: column; padding: 20px; z-index: 100; }
+        .sidebar h2 { color: #89CFF0; margin-bottom: 30px; font-size: 24px; letter-spacing: 1px; }
         .nav-item { padding: 15px 10px; margin-bottom: 10px; background-color: rgba(255, 255, 255, 0.05); border-radius: 5px; cursor: pointer; transition: 0.3s; }
         .nav-item:hover, .nav-item.active { background-color: #89CFF0; color: #001f3f; font-weight: bold; }
 
-        /* Workspace & Header */
-        .workspace { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-        .header { height: 70px; background-color: white; border-bottom: 1px solid #ddd; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; }
-        .search-bar { padding: 8px 15px; width: 300px; border: 1px solid #ccc; border-radius: 5px; }
-        .export-btn { background-color: #001f3f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; transition: 0.3s; }
-        .export-btn:hover { background-color: #89CFF0; color: #001f3f; font-weight: bold; }
+        /* Main Content Workspace */
+        .workspace { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+        .header { height: 70px; background-color: white; border-bottom: 1px solid #ddd; display: flex; align-items: center; justify-content: space-between; padding: 0 30px; flex-shrink: 0; }
         
-        /* --- VIEW CONTAINERS --- */
-        .view-section { display: none; flex: 1; padding: 20px; gap: 20px; overflow-y: auto; }
-        .view-section.active-view { display: flex; } /* Only the active view shows */
+        /* SEARCH BAR 1: ROCK DATABASE SEARCH */
+        .rock-search-container { display: flex; align-items: center; gap: 10px; }
+        .search-bar { padding: 8px 15px; width: 320px; border: 2px solid #89CFF0; border-radius: 5px; outline: none; }
+        
+        .export-btn { background-color: #001f3f; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .export-btn:hover { background-color: #89CFF0; color: #001f3f; }
 
-        /* 1. Mapper View Styles */
-        .main-stage { flex: 2; background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 2px solid #ccc; overflow: hidden; position: relative; }
-        #map { width: 100%; height: 100%; z-index: 1; }
-        .data-panel { flex: 1; background-color: white; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); padding: 20px; border-top: 5px solid #89CFF0; overflow-y: auto; }
-        .data-card { background-color: #f4f7f6; padding: 12px; border-radius: 5px; margin-bottom: 12px; font-size: 14px; }
+        /* View Sections */
+        .view-section { display: none; flex: 1; padding: 20px; gap: 20px; overflow-y: auto; height: calc(100vh - 70px); }
+        .view-section.active-view { display: flex; }
+
+        /* Mapper View Layout */
+        .main-stage { flex: 2; background-color: white; border-radius: 10px; border: 2px solid #ccc; overflow: hidden; position: relative; }
+        #map { width: 100%; height: 100%; }
+        
+        .data-panel { flex: 1; background-color: white; border-radius: 10px; padding: 20px; border-top: 5px solid #89CFF0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow-y: auto; }
+        .data-card { background-color: #f4f7f6; padding: 12px; border-radius: 5px; margin-bottom: 12px; font-size: 14px; border-left: 3px solid #001f3f; }
         .data-card strong { color: #001f3f; display: block; margin-bottom: 3px; }
-        .score-circle { width: 80px; height: 80px; border-radius: 50%; border: 8px solid #89CFF0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #001f3f; margin: 10px auto; }
         
-        /* Map Popup Styles */
-        .popup-select { width: 100%; padding: 6px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
-        .popup-btn { background-color: #001f3f; color: white; width: 100%; padding: 6px; border: none; border-radius: 4px; cursor: pointer; transition: 0.3s; }
-        .popup-btn:hover { background-color: #89CFF0; color: #001f3f; font-weight: bold; }
+        .score-circle { width: 85px; height: 85px; border-radius: 50%; border: 6px solid #89CFF0; display: flex; align-items: center; justify-content: center; font-size: 24px; font-weight: bold; color: #001f3f; margin: 15px auto; transition: 0.3s; }
 
-        /* 2. Database View Styles */
-        .db-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        /* Database & Scorer UI */
+        .db-table { width: 100%; border-collapse: collapse; background: white; border-radius: 10px; overflow: hidden; }
         .db-table th { background-color: #001f3f; color: white; padding: 15px; text-align: left; }
         .db-table td { padding: 15px; border-bottom: 1px solid #ddd; }
-        .db-table tr:hover { background-color: #f4f7f6; }
+        
+        .tool-panel { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 600px; margin: 20px auto; width: 100%; }
+        .action-btn { background-color: #89CFF0; color: #001f3f; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-right: 10px; }
+        .danger-btn { background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
 
-        /* 3. Scorer & Settings View Styles */
-        .tool-panel { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); max-width: 600px; margin: 0 auto; width: 100%; }
-        .tool-panel h3 { color: #001f3f; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        .slider-group { margin-bottom: 20px; }
-        .slider-group label { font-weight: bold; display: block; margin-bottom: 5px; color: #001f3f;}
-        input[type=range] { width: 100%; }
-        .danger-btn { background-color: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;}
-        .danger-btn:hover { background-color: #c82333; }
-        .action-btn { background-color: #89CFF0; color: #001f3f; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 10px;}
+        /* Popup Form Styling */
+        .popup-select { width: 100%; padding: 6px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; }
+        .popup-btn { background-color: #001f3f; color: white; width: 100%; padding: 8px; border: none; border-radius: 4px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -71,237 +70,186 @@
 
     <div class="workspace">
         <div class="header">
-            <input type="text" class="search-bar" placeholder="Global search...">
-            <button class="export-btn">Export Field Data (GeoJSON)</button>
+            <div class="rock-search-container">
+                <input type="text" class="search-bar" id="rock-search-top" placeholder="Search rock data (e.g., gneiss)...">
+            </div>
+            <button class="export-btn" id="export-master">Export Field Data (GeoJSON)</button>
         </div>
 
         <div id="view-mapper" class="view-section active-view">
             <div class="main-stage" id="map"></div>
-            <div class="data-panel">
-                <h3 style="color: #001f3f; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px;">Formation Analysis</h3>
+            <div class="data-panel" id="side-data-panel">
+                <h3 style="margin-bottom:15px; color:#001f3f;">Formation Analysis</h3>
                 <div class="data-card"><strong>Selected Rock:</strong> <span id="ui-name">Awaiting Selection...</span></div>
                 <div class="data-card"><strong>Primary Mineralogy:</strong> <span id="ui-minerals">--</span></div>
                 <div class="data-card"><strong>Tectonic Setting:</strong> <span id="ui-tectonic">--</span></div>
-                <div class="data-card" style="border-left: 4px solid #001f3f;"><strong>Planetary Match:</strong> <span id="ui-match">--</span></div>
+                <div class="data-card" style="border-left-color: #89CFF0;"><strong>Planetary Match:</strong> <span id="ui-match">--</span></div>
                 <div style="text-align: center; margin-top: 20px;">
                     <strong>Habitability Index</strong>
-                    <div class="score-circle" id="ui-score" style="border-color: #ccc;">--</div>
-                    <p style="font-size: 12px; color: #666; margin-top: 5px;" id="ui-note">Select a mapped formation.</p>
+                    <div class="score-circle" id="ui-score">--</div>
+                    <p style="font-size: 12px; color: #666;" id="ui-note">Select a point or boundary on the map.</p>
                 </div>
             </div>
         </div>
 
         <div id="view-database" class="view-section" style="flex-direction: column;">
-            <h2 style="color: #001f3f; margin-bottom: 15px;">Planetary Analog Database</h2>
+            <h2 style="color: #001f3f; margin-bottom: 20px;">Planetary Analog Reference</h2>
             <table class="db-table">
-                <thead>
-                    <tr>
-                        <th>Formation Name</th>
-                        <th>Mineralogy</th>
-                        <th>Tectonic Setting</th>
-                        <th>Planetary Match</th>
-                        <th>Score</th>
-                    </tr>
-                </thead>
-                <tbody id="db-table-body">
-                    </tbody>
+                <thead><tr><th>Name</th><th>Minerals</th><th>Tectonic</th><th>Planet Match</th><th>Score</th></tr></thead>
+                <tbody id="db-body-master"></tbody>
             </table>
         </div>
 
         <div id="view-scorer" class="view-section" style="align-items: center;">
             <div class="tool-panel">
-                <h3>Dynamic Habitability Calculator</h3>
-                <p style="color: #666; margin-bottom: 20px; font-size: 14px;">Adjust field variables to calculate theoretical astrobiological potential.</p>
-                
-                <div class="slider-group">
-                    <label>Rock Porosity (%) - <span id="val-porosity">50</span>%</label>
-                    <input type="range" id="slide-porosity" min="0" max="100" value="50">
-                    <small style="color: #888;">Higher porosity allows fluid flow and microbial niches.</small>
-                </div>
-
-                <div class="slider-group">
-                    <label>Hydration / Fluid Alteration</label>
-                    <select id="select-hydration" style="width: 100%; padding: 8px; border-radius: 5px; border: 1px solid #ccc;">
-                        <option value="1">Dry / Anhydrous (e.g., Granulite)</option>
-                        <option value="5">Moderate (e.g., Gneiss)</option>
-                        <option value="10">Highly Hydrated (e.g., Serpentinite)</option>
-                    </select>
-                </div>
-
-                <div style="text-align: center; margin-top: 40px; border-top: 2px solid #eee; padding-top: 20px;">
-                    <strong>Calculated Potential</strong>
-                    <div class="score-circle" id="calc-score" style="width: 120px; height: 120px; font-size: 40px; margin-top: 15px;">5.0</div>
-                </div>
+                <h3 style="margin-bottom:20px;">Habitability Calculator</h3>
+                <label>Rock Porosity: <span id="calc-porosity-val">50</span>%</label>
+                <input type="range" id="calc-porosity-slider" min="0" max="100" value="50" style="width:100%; margin: 15px 0;">
+                <label>Hydration Level</label>
+                <select id="calc-hydration-select" class="popup-select" style="height:40px;">
+                    <option value="1">Low (Anhydrous)</option>
+                    <option value="5">Moderate</option>
+                    <option value="10">High (Hydrated)</option>
+                </select>
+                <div class="score-circle" id="calc-result-display" style="width:120px; height:120px; font-size:40px; margin-top:30px;">5.0</div>
             </div>
         </div>
 
         <div id="view-settings" class="view-section" style="align-items: flex-start;">
             <div class="tool-panel">
-                <h3>Application Settings</h3>
-                
-                <div style="margin-bottom: 30px;">
-                    <strong style="display: block; margin-bottom: 10px; color: #001f3f;">Map Layer Style</strong>
-                    <button class="action-btn" id="btn-sat">Esri Satellite</button>
-                    <button class="action-btn" id="btn-topo" style="background-color: #ddd;">OpenTopoMap</button>
+                <h3>Map Settings</h3>
+                <div style="margin: 20px 0;">
+                    <button class="action-btn" id="set-sat">Satellite View</button>
+                    <button class="action-btn" id="set-topo" style="background:#ddd">Topo View</button>
                 </div>
-
-                <div style="border-top: 2px solid #eee; padding-top: 20px;">
-                    <strong style="display: block; margin-bottom: 10px; color: #dc3545;">Data Management</strong>
-                    <p style="font-size: 12px; color: #666; margin-bottom: 10px;">Warning: This will delete all drawn polygons and pins from your current session.</p>
-                    <button class="danger-btn" id="btn-clear-data">Clear All Field Data</button>
-                </div>
+                <hr>
+                <h3 style="margin: 20px 0; color: #dc3545;">Data Management</h3>
+                <button class="danger-btn" id="clear-all-data">Delete All Field Map Data</button>
             </div>
         </div>
-
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/1.0.4/leaflet.draw.js"></script>
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
 
     <script>
-        // --- 1. CORE DATABASE ---
-        const geologyDatabase = {
-            "charnockite": { name: "Charnockite (Granulite Facies)", minerals: "Orthopyroxene, Quartz, Feldspar", tectonic: "Continental Collision / High-Grade Metamorphic", match: "Martian Southern Highlands", score: "8.5", note: "Deep crustal analog. High potential for preserved biosignatures in fluid inclusions." },
-            "gneiss": { name: "High-Grade Banded Gneiss", minerals: "Quartz, Feldspar, Biotite, Hornblende", tectonic: "Regional Metamorphism / Orogenic Belts", match: "Europa Ice Shell (Structural Analog)", score: "7.2", note: "Ductile deformation patterns mimic icy moon tectonics." },
-            "serpentinite": { name: "Serpentinite (Hydrated Ultramafic)", minerals: "Serpentine, Magnetite, Brucite", tectonic: "Seafloor Spreading / Mid-Ocean Ridges", match: "Enceladus Subsurface Ocean / Mars (Jezero Crater)", score: "9.8", note: "Critical Astrobiology Target. Serpentinization produces hydrogen and methane." },
-            "basalt": { name: "Tholeiitic Basalt", minerals: "Pyroxene, Plagioclase, Olivine", tectonic: "Rift Zones / Hotspots", match: "Lunar Maria / Martian Shield Volcanoes", score: "4.5", note: "Common planetary crustal material. Porous vesicles may provide microbial microhabitats." }
+        // 1. MASTER DATABASE
+        const geoDb = {
+            "charnockite": { name: "Charnockite", minerals: "Orthopyroxene, Quartz, Feldspar", tectonic: "Continental Collision", match: "Mars Highlands", score: "8.5", note: "High preservation potential." },
+            "gneiss": { name: "Banded Gneiss", minerals: "Quartz, Feldspar, Biotite", tectonic: "Regional Metamorphism", match: "Europa Ice Shell", score: "7.2", note: "Ductile structural analog." },
+            "serpentinite": { name: "Serpentinite", minerals: "Serpentine, Magnetite, Brucite", tectonic: "Mid-Ocean Ridges", match: "Enceladus Subsurface", score: "9.8", note: "Hydrogen/Methane producer." },
+            "basalt": { name: "Tholeiitic Basalt", minerals: "Pyroxene, Olivine, Plagioclase", tectonic: "Rift Zones / Hotspots", match: "Lunar Maria", score: "4.5", note: "Common planetary crust." }
         };
 
-        // Populate Database Table Tab
-        const tbody = document.getElementById('db-table-body');
-        for (let key in geologyDatabase) {
-            let rock = geologyDatabase[key];
-            tbody.innerHTML += `<tr>
-                <td><strong>${rock.name}</strong></td>
-                <td>${rock.minerals}</td>
-                <td>${rock.tectonic}</td>
-                <td>${rock.match}</td>
-                <td><span style="background: #89CFF0; padding: 4px 8px; border-radius: 12px; font-weight: bold;">${rock.score}</span></td>
-            </tr>`;
-        }
-
-        // --- 2. NAVIGATION LOGIC (The SPA Engine) ---
-        const navItems = document.querySelectorAll('.nav-item');
-        const views = document.querySelectorAll('.view-section');
-
-        navItems.forEach(item => {
-            item.addEventListener('click', () => {
-                // Change highlighted button
-                navItems.forEach(nav => nav.classList.remove('active'));
-                item.classList.add('active');
-
-                // Hide all views, show the clicked one
-                const targetId = item.getAttribute('data-target');
-                views.forEach(view => { view.classList.remove('active-view'); view.style.display = 'none'; });
-                
-                const targetView = document.getElementById(targetId);
-                targetView.classList.add('active-view');
-                targetView.style.display = 'flex';
-
-                // Fix Leaflet map sizing bug when unhidden
-                if (targetId === 'view-mapper') { setTimeout(() => { map.invalidateSize(); }, 100); }
-            });
-        });
-
-        // --- 3. MAP & GIS LOGIC ---
-        let geojsonData = { "type": "FeatureCollection", "features": [] };
+        // 2. MAP INITIALIZATION
+        let masterGeoJSON = { "type": "FeatureCollection", "features": [] };
         const map = L.map('map').setView([6.9, 80.6], 8);
         
-        // Map Layers
-        let esriLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: 'Tiles © Esri' }).addTo(map);
-        let topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17, attribution: '© OpenTopoMap' });
+        let satLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 }).addTo(map);
+        let topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', { maxZoom: 17 });
 
-        const drawnItems = new L.FeatureGroup();
-        map.addLayer(drawnItems);
-        const drawControl = new L.Control.Draw({ edit: { featureGroup: drawnItems }, draw: { polygon: true, rectangle: true, marker: true, polyline: false, circle: false, circlemarker: false }});
-        map.addControl(drawControl);
+        const drawnItems = new L.FeatureGroup().addTo(map);
+        const drawControl = new L.Control.Draw({
+            edit: { featureGroup: drawnItems },
+            draw: { polygon: true, rectangle: true, marker: true, circle: false, circlemarker: false, polyline: false }
+        }).addTo(map);
 
-        function updateMapUI(data) {
-            document.getElementById('ui-name').innerText = data.name;
-            document.getElementById('ui-minerals').innerText = data.minerals;
-            document.getElementById('ui-tectonic').innerText = data.tectonic;
-            document.getElementById('ui-match').innerText = data.match;
-            document.getElementById('ui-score').innerText = data.score;
-            document.getElementById('ui-note').innerText = data.note;
-            document.getElementById('ui-score').style.borderColor = (data.score === "--") ? "#ccc" : (parseFloat(data.score) > 7 ? "#89CFF0" : "#ccc");
+        // SEARCH BAR 2: MAP LOCATION SEARCH (Top Left)
+        L.Control.geocoder({ position: 'topleft', placeholder: "Search Place (e.g. Panadura)..." })
+        .on('markgeocode', function(e) { map.flyToBounds(e.geocode.bbox); })
+        .addTo(map);
+
+        // 3. UI FUNCTIONS
+        function updateSidePanel(d) {
+            document.getElementById('ui-name').innerText = d.name;
+            document.getElementById('ui-minerals').innerText = d.minerals;
+            document.getElementById('ui-tectonic').innerText = d.tectonic;
+            document.getElementById('ui-match').innerText = d.match;
+            document.getElementById('ui-score').innerText = d.score;
+            document.getElementById('ui-score').style.borderColor = parseFloat(d.score) > 7 ? "#89CFF0" : "#ccc";
         }
 
-        window.saveFieldData = function(featureIndex) {
-            let select = document.getElementById('rock-select-' + featureIndex);
-            if(!select.value) { alert("Select a rock type!"); return; }
-            geojsonData.features[featureIndex].properties.sample_type = geologyDatabase[select.value].name;
-            geojsonData.features[featureIndex].properties.database_key = select.value;
-            updateMapUI(geologyDatabase[select.value]);
-            select.style.border = "2px solid #89CFF0";
+        // ROCK DATABASE SEARCH (TOP BAR)
+        document.getElementById('rock-search-top').addEventListener('input', function(e) {
+            let v = e.target.value.toLowerCase().trim();
+            if(geoDb[v]) updateSidePanel(geoDb[v]);
+        });
+
+        // 4. MAPPING LOGIC
+        window.saveMapFeature = function(idx) {
+            let sel = document.getElementById('pop-sel-' + idx);
+            if(!sel.value) return;
+            let rock = geoDb[sel.value];
+            masterGeoJSON.features[idx].properties.sample_type = rock.name;
+            masterGeoJSON.features[idx].properties.db_key = sel.value;
+            updateSidePanel(rock);
+            alert(rock.name + " saved to layer.");
         };
 
         map.on(L.Draw.Event.CREATED, function (e) {
             let layer = e.layer;
             drawnItems.addLayer(layer);
+            let idx = masterGeoJSON.features.length;
+            let feat = layer.toGeoJSON();
+            feat.properties = { "sample_type": "Unidentified", "db_key": null };
+            masterGeoJSON.features.push(feat);
 
-            let currentIndex = geojsonData.features.length;
-            let newFeature = layer.toGeoJSON();
-            newFeature.properties = { "sample_type": "Unidentified", "database_key": null };
-            geojsonData.features.push(newFeature);
-
-            let popupForm = `<div style="text-align: center; width: 160px;"><b>Log Feature</b><br>
-                <select id="rock-select-${currentIndex}" class="popup-select">
-                    <option value="">-- Select --</option><option value="charnockite">Charnockite</option><option value="gneiss">Gneiss</option><option value="serpentinite">Serpentinite</option><option value="basalt">Basalt</option>
+            let pop = `<div style="text-align:center;"><b>Log Formation</b><br>
+                <select id="pop-sel-${idx}" class="popup-select">
+                    <option value="">-- Select --</option>
+                    <option value="charnockite">Charnockite</option>
+                    <option value="gneiss">Gneiss</option>
+                    <option value="serpentinite">Serpentinite</option>
+                    <option value="basalt">Basalt</option>
                 </select>
-                <button class="popup-btn" onclick="saveFieldData(${currentIndex})">Save</button></div>`;
-            layer.bindPopup(popupForm).openPopup();
+                <button class="popup-btn" onclick="saveMapFeature(${idx})">Save to Log</button></div>`;
+            layer.bindPopup(pop).openPopup();
 
             layer.on('click', function() {
-                let savedKey = geojsonData.features[currentIndex].properties.database_key;
-                if (savedKey) updateMapUI(geologyDatabase[savedKey]);
+                let key = masterGeoJSON.features[idx].properties.db_key;
+                if(key) updateSidePanel(geoDb[key]);
             });
         });
 
-        document.querySelector('.export-btn').addEventListener('click', function() {
-            if(geojsonData.features.length === 0) { alert("Map is empty!"); return; }
-            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(geojsonData));
-            const dl = document.createElement('a'); dl.setAttribute("href", dataStr); dl.setAttribute("download", "ExoLith_Data.geojson");
-            document.body.appendChild(dl); dl.click(); dl.remove();
+        // 5. APP NAVIGATION
+        const navs = document.querySelectorAll('.nav-item');
+        navs.forEach(n => {
+            n.addEventListener('click', () => {
+                navs.forEach(x => x.classList.remove('active'));
+                n.classList.add('active');
+                document.querySelectorAll('.view-section').forEach(v => v.style.display = 'none');
+                let target = document.getElementById(n.getAttribute('data-target'));
+                target.style.display = 'flex';
+                if(n.getAttribute('data-target') === 'view-mapper') setTimeout(() => map.invalidateSize(), 200);
+            });
         });
 
-        // --- 4. HABITABILITY SCORER LOGIC ---
-        const porositySlider = document.getElementById('slide-porosity');
-        const hydrationSelect = document.getElementById('select-hydration');
-        const calcScore = document.getElementById('calc-score');
+        // 6. OTHER FEATURES
+        document.getElementById('export-master').onclick = () => {
+            const data = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(masterGeoJSON));
+            const a = document.createElement('a'); a.href = data; a.download = "ExoLith_FieldData.geojson"; a.click();
+        };
 
-        function calculateScore() {
-            document.getElementById('val-porosity').innerText = porositySlider.value;
-            let pValue = parseFloat(porositySlider.value) / 100; // 0 to 1
-            let hValue = parseFloat(hydrationSelect.value); // 1, 5, or 10
-            
-            // Simple algorithm: (Porosity * 4) + (Hydration * 0.6)
-            let rawScore = (pValue * 4) + (hValue * 0.6);
-            let finalScore = rawScore.toFixed(1);
-            
-            calcScore.innerText = finalScore;
-            calcScore.style.borderColor = finalScore > 7 ? "#89CFF0" : (finalScore > 4 ? "#f1c40f" : "#ccc");
+        const dbBody = document.getElementById('db-body-master');
+        for(let k in geoDb) {
+            let r = geoDb[k];
+            dbBody.innerHTML += `<tr><td><b>${r.name}</b></td><td>${r.minerals}</td><td>${r.tectonic}</td><td>${r.match}</td><td>${r.score}</td></tr>`;
         }
-        porositySlider.addEventListener('input', calculateScore);
-        hydrationSelect.addEventListener('change', calculateScore);
 
-        // --- 5. SETTINGS LOGIC ---
-        document.getElementById('btn-clear-data').addEventListener('click', () => {
-            if(confirm("Are you sure you want to delete all drawn polygons and pins?")) {
-                drawnItems.clearLayers();
-                geojsonData.features = [];
-                alert("Field data cleared.");
-            }
-        });
+        const pSlide = document.getElementById('calc-porosity-slider');
+        const hSel = document.getElementById('calc-hydration-select');
+        function doCalc() {
+            document.getElementById('calc-porosity-val').innerText = pSlide.value;
+            let res = ((pSlide.value / 100) * 4 + (hSel.value * 0.6)).toFixed(1);
+            document.getElementById('calc-result-display').innerText = res;
+            document.getElementById('calc-result-display').style.borderColor = res > 7 ? "#89CFF0" : "#ccc";
+        }
+        pSlide.oninput = doCalc; hSel.onchange = doCalc;
 
-        document.getElementById('btn-topo').addEventListener('click', function() {
-            map.removeLayer(esriLayer); topoLayer.addTo(map);
-            this.style.backgroundColor = "#89CFF0"; document.getElementById('btn-sat').style.backgroundColor = "#ddd";
-        });
-        document.getElementById('btn-sat').addEventListener('click', function() {
-            map.removeLayer(topoLayer); esriLayer.addTo(map);
-            this.style.backgroundColor = "#89CFF0"; document.getElementById('btn-topo').style.backgroundColor = "#ddd";
-        });
-
+        document.getElementById('set-sat').onclick = () => { map.removeLayer(topoLayer); satLayer.addTo(map); };
+        document.getElementById('set-topo').onclick = () => { map.removeLayer(satLayer); topoLayer.addTo(map); };
+        document.getElementById('clear-all-data').onclick = () => { if(confirm("Clear map?")) { drawnItems.clearLayers(); masterGeoJSON.features = []; } };
     </script>
 </body>
 </html>
